@@ -83,10 +83,28 @@ def load_fingerprint_data() -> List[FingerprintData]:
         return []
 
 def save_fingerprint_data(fingerprints: List[FingerprintData]) -> bool:
-    """Save fingerprint data to file"""
+    """Merge and save fingerprint data to file without overwriting existing names or actions"""
     try:
+        # Load existing data as a map: position -> FingerprintData
+        existing = {fp.position: fp for fp in load_fingerprint_data()}
+
+        # Merge incoming entries
+        for fp in fingerprints:
+            if fp.position in existing:
+                old = existing[fp.position]
+
+                # Preserve name and action if not supplied in new data
+                if not fp.name and old.name:
+                    fp.name = old.name
+                if not fp.action and old.action:
+                    fp.action = old.action
+
+            # Insert or update
+            existing[fp.position] = fp
+
+        # Save to file
         with open(FINGERPRINT_DATA_FILE, 'w') as f:
-            json.dump([fp.dict() for fp in fingerprints], f, indent=2)
+            json.dump([fp.dict() for fp in existing.values()], f, indent=2)
         return True
     except Exception as e:
         print(f"Error saving fingerprint data: {e}")

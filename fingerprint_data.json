@@ -2,11 +2,11 @@
   {
     "position": 0,
     "name": "Thomas Rasser - Right Index",
-    "action": "na"
+    "action": null
   },
   {
     "position": 1,
-    "name": "Thomas Rasser - Left Index",
-    "action": "toggle"
+    "name": "Right Ring",
+    "action": null
   }
 ]

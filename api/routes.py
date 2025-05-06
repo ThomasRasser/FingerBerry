@@ -1,7 +1,7 @@
 """
 API routes and handlers for the fingerprint sensor
 """
-
+import traceback
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Body
 from typing import Optional
 
@@ -17,6 +17,7 @@ from api.models import (
     UpdateNameRequest,
     UpdateActionRequest,
     load_fingerprint_data,
+    save_fingerprint_data,
     get_fingerprint_by_position,
     add_fingerprint,
     update_fingerprint_name,
@@ -126,11 +127,12 @@ async def get_all_fingerprints():
         if count is None:
             raise HTTPException(status_code=500, detail="Failed to retrieve template count")
 
-        # If no named fingerprints are stored yet, initialize with positions from sensor
-        if len(fingerprints) == 0 and count > 0:
-            # This is a simplification since we don't know which positions are used
-            # In a real implementation, you would need to scan the sensor positions
-            fingerprints = [FingerprintData(position=i, name=None) for i in range(count)]
+        positions = manager.get_stored_positions()
+        name_map = {fp.position: fp.name for fp in load_fingerprint_data()}
+        fingerprints = [FingerprintData(position=pos, name=name_map.get(pos)) for pos in positions]
+
+        # Save updated list to JSON (adds new, keeps known names)
+        save_fingerprint_data(fingerprints)
 
         return {
             "fingerprints": fingerprints,
@@ -164,8 +166,6 @@ async def set_fingerprint_name(position: int, request: UpdateNameRequest):
             "position": position,
             "message": f"Error updating fingerprint name: {str(e)}"
         }
-
-from api.models import UpdateActionRequest, update_fingerprint_action  # Make sure this import exists
 
 @router.put("/fingerprints/{position}/action", response_model=EnrollResponse)
 async def set_fingerprint_action(position: int, request: UpdateActionRequest):

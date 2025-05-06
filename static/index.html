@@ -3,16 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fingerprint Sensor Control</title>
+    <title>FingerBerry</title>
     <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Fingerprint Sensor Control</h1>
+            <h1>FingerBerry</h1>
         </header>
 
         <main>
+
+            <!-- Sensor status card -->
             <div class="card">
                 <h2>Sensor Status</h2>
                 <div id="fingerprintVisual" class="fingerprint-visual">
@@ -24,6 +26,7 @@
                 <button id="statusBtn" class="btn">Check Connection</button>
             </div>
 
+            <!-- Fingerprint operations card -->
             <div class="card">
                 <h2>Fingerprint Operations</h2>
                 <div class="button-row">
@@ -34,10 +37,9 @@
                 </div>
             </div>
 
-            <!-- New fingerprint table card -->
+            <!-- Stored fingerprints table card -->
             <div class="card">
                 <h2>Stored Fingerprints</h2>
-                <button id="refreshFingerprintsBtn" class="btn">Refresh List</button>
                 <div class="table-container">
                     <table id="fingerprintTable">
                         <thead>
@@ -56,8 +58,10 @@
                         </tbody>
                     </table>
                 </div>
+                <button id="refreshFingerprintsBtn" class="btn">Refresh List</button>
             </div>
 
+            <!-- Status logs card -->
             <div class="card">
                 <h2>Status Log</h2>
                 <div id="log"></div>
@@ -66,7 +70,7 @@
         </main>
 
         <footer>
-            <p>&copy; 2025 Raspberry Pi Fingerprint API</p>
+            <p>&copy; 2025 FingerBerry</p>
         </footer>
     </div>
 

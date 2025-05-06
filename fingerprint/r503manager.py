@@ -336,6 +336,29 @@ class R503Manager:
             self.set_led_status(FingerStatus.ERROR)
             return None
 
+    def get_stored_positions(self):
+        """
+        Return a list of template positions that are currently stored on the sensor.
+        """
+        if not self.finger:
+            return []
+
+        try:
+            used_positions = []
+            capacity = self.finger.getStorageCapacity()
+            for position in range(capacity):
+                # Try loading the template; returns True if it exists
+                try:
+                    if self.finger.loadTemplate(position):
+                        used_positions.append(position)
+                except Exception:
+                    pass  # If loadTemplate fails, slot is likely empty
+            return used_positions
+        except Exception as e:
+            print(f"Error scanning sensor positions: {e}")
+            return []
+
+
     def clear_database(self):
         """
         Clear all fingerprints from the database
