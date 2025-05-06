@@ -26,11 +26,35 @@
 
             <div class="card">
                 <h2>Fingerprint Operations</h2>
-                <button id="enrollBtn" class="btn">Enroll New Fingerprint</button>
-                <button id="verifyBtn" class="btn">Verify Fingerprint</button>
-                <button id="deleteBtn" class="btn">Delete Fingerprint</button>
-                <button id="countBtn" class="btn">Count Stored Prints</button>
-                <button id="clearBtn" class="btn btn-danger">Clear Database</button>
+                <div class="button-row">
+                    <button id="enrollBtn" class="btn">Enroll New Fingerprint</button>
+                    <button id="verifyBtn" class="btn">Verify Fingerprint</button>
+                    <button id="countBtn" class="btn">Count Stored Prints</button>
+                    <button id="clearBtn" class="btn btn-danger">Clear Database</button>
+                </div>
+            </div>
+
+            <!-- New fingerprint table card -->
+            <div class="card">
+                <h2>Stored Fingerprints</h2>
+                <button id="refreshFingerprintsBtn" class="btn">Refresh List</button>
+                <div class="table-container">
+                    <table id="fingerprintTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="fingerprintTableBody">
+                            <!-- Table rows will be added dynamically via JavaScript -->
+                            <tr>
+                                <td colspan="3" class="text-center">Loading fingerprints...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <div class="card">

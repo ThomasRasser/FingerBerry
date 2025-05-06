@@ -3,10 +3,9 @@ Background task handlers for fingerprint operations
 """
 
 import os
-import sys
 import json
 from api.websocket import broadcast_message
-
+from api.models import add_fingerprint, remove_fingerprint, clear_all_fingerprints, get_fingerprint_by_position
 from fingerprint.r503manager import R503Manager, FingerStatus
 
 # Sensor configuration
@@ -23,40 +22,17 @@ def get_manager():
     """
     global fingerprint_manager
     if not fingerprint_manager:
-        fingerprint_manager = EnhancedR503Manager(SENSOR_PORT, SENSOR_BAUDRATE)
+        fingerprint_manager = R503Manager(SENSOR_PORT, SENSOR_BAUDRATE)
         fingerprint_manager.connect()
     return fingerprint_manager
 
-class EnhancedR503Manager(R503Manager):
+async def enroll_fingerprint_task(name=None):
     """
-    Enhanced version of R503Manager that integrates with WebSockets
-    for real-time status updates
+    Background task for fingerprint enrollment
+
+    Args:
+        name (str, optional): Name for the fingerprint
     """
-
-    async def notify(self, status_type, status, message, **kwargs):
-        """Send a notification to all connected WebSocket clients"""
-        data = {
-            "type": status_type,
-            "status": status,
-            "message": message,
-            **kwargs
-        }
-        await broadcast_message(json.dumps(data))
-
-    async def wait_for_finger_with_updates(self):
-        """Wait for finger with WebSocket updates"""
-        await self.notify("status", "waiting", "Waiting for finger placement...")
-        result = self.wait_for_finger()
-        return result
-
-    async def wait_finger_removed_with_updates(self):
-        """Wait for finger removal with WebSocket updates"""
-        await self.notify("status", "waiting", "Please remove your finger...")
-        result = self.wait_finger_removed()
-        return result
-
-async def enroll_fingerprint_task():
-    """Background task for fingerprint enrollment"""
     try:
         manager = get_manager()
         await broadcast_message(json.dumps({
@@ -69,11 +45,15 @@ async def enroll_fingerprint_task():
         success, position = manager.enroll_finger()
 
         if success:
+            # Save the fingerprint with name
+            add_fingerprint(position, name)
+
             await broadcast_message(json.dumps({
                 "type": "status",
                 "status": "success",
                 "position": position,
-                "message": f"Fingerprint enrolled successfully at position {position}"
+                "message": f"Fingerprint enrolled successfully at position {position}" +
+                          (f" with name '{name}'" if name else "")
             }))
             return {"success": True, "position": position, "message": f"Enrollment complete at position {position}"}
         else:
@@ -113,30 +93,44 @@ async def verify_fingerprint_task():
         success, position, accuracy = manager.verify_finger()
 
         if success:
+            # Get the fingerprint name if available
+            fingerprint = get_fingerprint_by_position(position)
+            name = fingerprint.name if fingerprint else None
+
+            message = f"Fingerprint verified at position {position} with accuracy {accuracy}"
+            if name:
+                message += f" (Name: {name})"
+
             await broadcast_message(json.dumps({
                 "type": "status",
                 "status": "success",
                 "position": position,
                 "accuracy": accuracy,
-                "message": f"Fingerprint verified at position {position} with accuracy {accuracy}"
+                "name": name,
+                "message": message
             }))
-            return {"success": True, "position": position, "accuracy": accuracy, "message": "Verification successful"}
+            return {"success": True, "position": position, "accuracy": accuracy, "name": name, "message": "Verification successful"}
         else:
             await broadcast_message(json.dumps({
                 "type": "status",
                 "status": "failed",
                 "message": "Fingerprint not found in database"
             }))
-            return {"success": False, "position": None, "accuracy": None, "message": "Fingerprint not found"}
+            return {"success": False, "position": None, "accuracy": None, "name": None, "message": "Fingerprint not found"}
     except Exception as e:
         await broadcast_message(json.dumps({
             "type": "error",
             "message": f"Error during verification: {str(e)}"
         }))
-        return {"success": False, "position": None, "accuracy": None, "message": f"Error: {str(e)}"}
+        return {"success": False, "position": None, "accuracy": None, "name": None, "message": f"Error: {str(e)}"}
 
 async def delete_fingerprint_task(position=None):
-    """Background task for fingerprint deletion"""
+    """
+    Background task for fingerprint deletion
+
+    Args:
+        position (int, optional): Position to delete, if None will scan finger
+    """
     try:
         manager = get_manager()
 
@@ -148,8 +142,16 @@ async def delete_fingerprint_task(position=None):
                 "message": f"Deleting fingerprint at position {position}"
             }))
 
+            # Get name before deletion if available
+            fingerprint = get_fingerprint_by_position(position)
+            name = fingerprint.name if fingerprint else None
+
             # Delete by position
             success = manager.delete_finger(position)
+
+            if success:
+                # Remove from our name storage as well
+                remove_fingerprint(position)
         else:
             await broadcast_message(json.dumps({
                 "type": "status",
@@ -159,8 +161,24 @@ async def delete_fingerprint_task(position=None):
 
             # Use verify-then-delete approach
             success, position, _ = manager.verify_finger()
+
             if success and position is not None:
+                # Get name before deletion if available
+                fingerprint = get_fingerprint_by_position(position)
+                name = fingerprint.name if fingerprint else None
+
+                await broadcast_message(json.dumps({
+                    "type": "status",
+                    "status": "deleting",
+                    "position": position,
+                    "message": f"Fingerprint found, deleting from position {position}"
+                }))
+
                 success = manager.delete_finger(position)
+
+                if success:
+                    # Remove from our name storage as well
+                    remove_fingerprint(position)
             else:
                 await broadcast_message(json.dumps({
                     "type": "status",
@@ -170,11 +188,12 @@ async def delete_fingerprint_task(position=None):
                 return {"success": False, "position": None, "message": "Fingerprint not found for deletion"}
 
         if success:
+            name_msg = f" (Name: {name})" if name else ""
             await broadcast_message(json.dumps({
                 "type": "status",
                 "status": "success",
                 "position": position,
-                "message": f"Fingerprint deleted successfully from position {position}"
+                "message": f"Fingerprint deleted successfully from position {position}{name_msg}"
             }))
             return {"success": True, "position": position, "message": f"Fingerprint deleted from position {position}"}
         else:
@@ -206,6 +225,9 @@ async def clear_database_task():
         success = manager.clear_database()
 
         if success:
+            # Also clear our fingerprint names database
+            clear_all_fingerprints()
+
             await broadcast_message(json.dumps({
                 "type": "status",
                 "status": "success",

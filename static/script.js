@@ -7,6 +7,9 @@ let webSocket = null;
 const apiBase = window.location.origin + '/api';
 const wsBase = (window.location.protocol === 'https:' ? 'wss://' : 'ws://') + window.location.host;
 
+// Store fingerprint data
+let fingerprints = [];
+
 // DOM elements - we will populate this when the page loads
 let elements = {};
 
@@ -21,11 +24,13 @@ function initialize() {
         log: document.getElementById('log'),
         enrollBtn: document.getElementById('enrollBtn'),
         verifyBtn: document.getElementById('verifyBtn'),
-        deleteBtn: document.getElementById('deleteBtn'),
         countBtn: document.getElementById('countBtn'),
         clearBtn: document.getElementById('clearBtn'),
         statusBtn: document.getElementById('statusBtn'),
-        clearLogBtn: document.getElementById('clearLogBtn')
+        clearLogBtn: document.getElementById('clearLogBtn'),
+        fingerprintTable: document.getElementById('fingerprintTable'),
+        fingerprintTableBody: document.getElementById('fingerprintTableBody'),
+        refreshFingerprintsBtn: document.getElementById('refreshFingerprintsBtn')
     };
 
     // Connect to WebSocket
@@ -33,6 +38,9 @@ function initialize() {
 
     // Check initial sensor status
     checkStatus();
+
+    // Load fingerprints
+    loadFingerprints();
 
     // Set up button event listeners
     setupEventListeners();
@@ -48,18 +56,11 @@ function setupEventListeners() {
     // Operation buttons
     elements.enrollBtn.addEventListener('click', enrollFinger);
     elements.verifyBtn.addEventListener('click', verifyFinger);
-    elements.deleteBtn.addEventListener('click', function() {
-        const position = prompt("Enter fingerprint position to delete, or leave blank to scan:", "");
-        if (position === null) return; // User cancelled
-
-        if (position === "" || isNaN(parseInt(position))) {
-            deleteFinger();
-        } else {
-            deleteFingerByPosition(parseInt(position));
-        }
-    });
     elements.countBtn.addEventListener('click', getCount);
     elements.clearBtn.addEventListener('click', confirmClear);
+
+    // Fingerprint table buttons
+    elements.refreshFingerprintsBtn.addEventListener('click', loadFingerprints);
 
     // Clear log button
     elements.clearLogBtn.addEventListener('click', clearLog);
@@ -111,6 +112,11 @@ function handleWebSocketMessage(data) {
             updateSensorState(data.status, data.message);
             log(data.message, data.status === 'success' ? 'success' :
                              data.status === 'failed' ? 'error' : 'warning');
+
+            // If enrollment was successful, refresh fingerprint list
+            if (data.status === 'success' && data.message.includes('enrolled successfully')) {
+                setTimeout(loadFingerprints, 1000); // Delay slightly to ensure data is saved
+            }
             break;
 
         case 'error':
@@ -126,6 +132,97 @@ function handleWebSocketMessage(data) {
             // For unknown types, just log the message
             log(JSON.stringify(data));
     }
+}
+
+/**
+ * Load fingerprints from the API and populate the table
+ */
+function loadFingerprints() {
+    fetch(`${apiBase}/fingerprints`)
+        .then(response => response.json())
+        .then(data => {
+            fingerprints = data.fingerprints;
+            renderFingerprintTable();
+            log(`Loaded ${fingerprints.length} fingerprints`, 'success');
+        })
+        .catch(error => {
+            log(`Error loading fingerprints: ${error}`, 'error');
+            elements.fingerprintTableBody.innerHTML = `
+                <tr>
+                    <td colspan="3" class="text-center">Error loading fingerprints</td>
+                </tr>
+            `;
+        });
+}
+
+/**
+ * Render the fingerprint table with current data
+ */
+function renderFingerprintTable() {
+    if (!elements.fingerprintTableBody) return;
+
+    if (fingerprints.length === 0) {
+        elements.fingerprintTableBody.innerHTML = `
+            <tr>
+                <td colspan="3" class="text-center">No fingerprints stored</td>
+            </tr>
+        `;
+        return;
+    }
+
+    let html = '';
+    fingerprints.forEach(fingerprint => {
+        html += `
+            <tr>
+                <td>${fingerprint.position}</td>
+                <td>
+                    <input type="text"
+                           class="fingerprint-name-input"
+                           value="${fingerprint.name || ''}"
+                           placeholder="Unnamed"
+                           data-position="${fingerprint.position}"
+                           onchange="updateFingerprintName(${fingerprint.position}, this.value)">
+                </td>
+                <td class="actions">
+                    <button class="btn btn-small btn-danger" onclick="deleteFingerByPosition(${fingerprint.position})">Delete</button>
+                </td>
+            </tr>
+        `;
+    });
+
+    elements.fingerprintTableBody.innerHTML = html;
+}
+
+/**
+ * Update the name of a fingerprint
+ * @param {number} position - The fingerprint position
+ * @param {string} name - The new name
+ */
+function updateFingerprintName(position, name) {
+    fetch(`${apiBase}/fingerprints/${position}/name`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name: name })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            log(`Updated name for fingerprint at position ${position}`, 'success');
+
+            // Update local data
+            const index = fingerprints.findIndex(f => f.position === position);
+            if (index !== -1) {
+                fingerprints[index].name = name;
+            }
+        } else {
+            log(`Failed to update name: ${data.message}`, 'error');
+        }
+    })
+    .catch(error => {
+        log(`Error updating name: ${error}`, 'error');
+    });
 }
 
 /**
@@ -220,11 +317,19 @@ function clearLog() {
  * Enroll a new fingerprint
  */
 function enrollFinger() {
+    const name = prompt("Enter a name for this fingerprint (optional):", "");
+    // If user cancels the prompt, name will be null
+    if (name === null) return;
+
     log('Starting fingerprint enrollment...', 'warning');
     elements.fingerprintVisual.classList.add('scanning');
 
     fetch(`${apiBase}/enroll`, {
-        method: 'POST'
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name: name })
     })
     .then(response => response.json())
     .then(data => {
@@ -248,7 +353,17 @@ function verifyFinger() {
     })
     .then(response => response.json())
     .then(data => {
-        log(data.message, data.success ? 'success' : 'warning');
+        if (data.success && data.position !== null) {
+            // Find the fingerprint with this position
+            const fingerprint = fingerprints.find(f => f.position === data.position);
+            if (fingerprint && fingerprint.name) {
+                log(`Fingerprint verified: ${fingerprint.name} (Position ${data.position}, Accuracy ${data.accuracy})`, 'success');
+            } else {
+                log(`Fingerprint verified at position ${data.position} with accuracy ${data.accuracy}`, 'success');
+            }
+        } else {
+            log(data.message, 'warning');
+        }
     })
     .catch(error => {
         log(`Error during verification: ${error}`, 'error');
@@ -261,6 +376,10 @@ function verifyFinger() {
  * @param {number} position - The position to delete
  */
 function deleteFingerByPosition(position) {
+    if (!confirm(`Are you sure you want to delete the fingerprint at position ${position}?`)) {
+        return;
+    }
+
     log(`Deleting fingerprint at position ${position}...`, 'warning');
 
     fetch(`${apiBase}/delete/${position}`, {
@@ -269,29 +388,14 @@ function deleteFingerByPosition(position) {
     .then(response => response.json())
     .then(data => {
         log(data.message, data.success ? 'success' : 'error');
+        if (data.success) {
+            // Remove from local array and re-render table
+            fingerprints = fingerprints.filter(f => f.position !== position);
+            renderFingerprintTable();
+        }
     })
     .catch(error => {
         log(`Error during deletion: ${error}`, 'error');
-    });
-}
-
-/**
- * Delete a fingerprint by scanning
- */
-function deleteFinger() {
-    log('Place finger to delete from database...', 'warning');
-    elements.fingerprintVisual.classList.add('scanning');
-
-    fetch(`${apiBase}/delete`, {
-        method: 'POST'
-    })
-    .then(response => response.json())
-    .then(data => {
-        log(data.message, data.success ? 'success' : 'warning');
-    })
-    .catch(error => {
-        log(`Error during deletion: ${error}`, 'error');
-        elements.fingerprintVisual.classList.remove('scanning');
     });
 }
 
@@ -331,6 +435,11 @@ function clearDatabase() {
     .then(response => response.json())
     .then(data => {
         log(data.message, data.success ? 'success' : 'error');
+        if (data.success) {
+            // Clear local data and re-render table
+            fingerprints = [];
+            renderFingerprintTable();
+        }
         elements.fingerprintVisual.classList.remove('scanning');
     })
     .catch(error => {
