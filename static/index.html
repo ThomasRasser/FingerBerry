@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fingerprint Sensor Control</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Fingerprint Sensor Control</h1>
+        </header>
+
+        <main>
+            <div class="card">
+                <h2>Sensor Status</h2>
+                <div id="fingerprintVisual" class="fingerprint-visual">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839-1.132c.645-2.266.99-4.659.99-7.138A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"></path>
+                    </svg>
+                </div>
+                <div id="sensorStatus" class="status">Checking connection...</div>
+                <button id="statusBtn" class="btn">Check Connection</button>
+            </div>
+
+            <div class="card">
+                <h2>Fingerprint Operations</h2>
+                <button id="enrollBtn" class="btn">Enroll New Fingerprint</button>
+                <button id="verifyBtn" class="btn">Verify Fingerprint</button>
+                <button id="deleteBtn" class="btn">Delete Fingerprint</button>
+                <button id="countBtn" class="btn">Count Stored Prints</button>
+                <button id="clearBtn" class="btn btn-danger">Clear Database</button>
+            </div>
+
+            <div class="card">
+                <h2>Status Log</h2>
+                <div id="log"></div>
+                <button id="clearLogBtn" class="btn">Clear Log</button>
+            </div>
+        </main>
+
+        <footer>
+            <p>&copy; 2025 Raspberry Pi Fingerprint API</p>
+        </footer>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>

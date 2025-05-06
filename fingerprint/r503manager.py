@@ -8,7 +8,7 @@ from enum import Enum
 
 from pyfingerprint.pyfingerprint import PyFingerprint
 
-from r503led import R503LED, LEDColor, LEDMode
+from .r503led import R503LED, LEDColor, LEDMode
 
 
 class FingerStatus(Enum):
@@ -42,10 +42,8 @@ class R503Manager:
         self.address = address
         self.password = password
 
-        # Create LED controller
         self.led = R503LED(port, baudrate)
 
-        # Will hold the PyFingerprint instance
         self.finger = None
 
     def __enter__(self):
@@ -60,10 +58,8 @@ class R503Manager:
     def connect(self):
         """Connect to the fingerprint sensor"""
         try:
-            # Initialize PyFingerprint
             self.finger = PyFingerprint(self.port, self.baudrate, self.address, self.password)
 
-            # Connect the LED controller
             self.led.connect()
 
             # Check if sensor is ready
@@ -364,11 +360,9 @@ class R503Manager:
             return False
 
 
-# Example usage if run as a script
 if __name__ == "__main__":
     import argparse
 
-    # Set up command line argument parser
     parser = argparse.ArgumentParser(description="R503 Fingerprint operations with LED feedback")
     parser.add_argument("--port", default="/dev/ttyS0", help="Serial port (default: /dev/ttyS0)")
     parser.add_argument("--baudrate", type=int, default=57600, help="Baudrate (default: 57600)")
@@ -380,10 +374,8 @@ if __name__ == "__main__":
     )
     parser.add_argument("--position", type=int, help="Position for deletion (0-199)")
 
-    # Parse arguments
     args = parser.parse_args()
 
-    # Perform the selected operation
     try:
         with R503Manager(args.port, args.baudrate) as manager:
             print(f"Connected to fingerprint sensor on {args.port}")
