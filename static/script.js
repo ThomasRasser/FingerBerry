@@ -184,6 +184,14 @@ function renderFingerprintTable() {
                            onchange="updateFingerprintName(${fingerprint.position}, this.value)">
                 </td>
                 <td class="actions">
+                    <select onchange="updateFingerprintAction(${fingerprint.position}, this.value)">
+                        <option value="na" ${fingerprint.action === "none" ? "selected" : ""}>No Action</option>
+                        <option value="on" ${fingerprint.action === "on" ? "selected" : ""}>Smart Plug ON</option>
+                        <option value="off" ${fingerprint.action === "off" ? "selected" : ""}>Smart Plug OFF</option>
+                        <option value="toggle" ${fingerprint.action === "toggle" ? "selected" : ""}>Toggle Plug</option>
+                    </select>
+                </td>
+                <td class="delete">
                     <button class="btn btn-small btn-danger" onclick="deleteFingerByPosition(${fingerprint.position})">Delete</button>
                 </td>
             </tr>
@@ -223,6 +231,22 @@ function updateFingerprintName(position, name) {
     .catch(error => {
         log(`Error updating name: ${error}`, 'error');
     });
+}
+
+/**
+ * Update the action of a fingerprint
+ * @param {number} position - The fingerprint position
+ * @param {string} action - The action
+ */
+function updateFingerprintAction(position, action) {
+    fetch(`${apiBase}/fingerprints/${position}/action`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action })
+    })
+    .then(res => res.json())
+    .then(data => log(data.message, data.success ? 'success' : 'error'))
+    .catch(error => log(`Error updating action: ${error}`, 'error'));
 }
 
 /**

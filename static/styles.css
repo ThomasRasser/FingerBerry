@@ -263,6 +263,19 @@ tr:hover {
   outline: none;
 }
 
+select {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: white;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+select:focus {
+  border-color: var(--primary);
+  outline: none;
+}
+
 .save-name-btn {
   padding: 5px 10px;
   background-color: var(--success);

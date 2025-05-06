@@ -1,18 +1,12 @@
 [
   {
     "position": 0,
-    "name": "Thomas Rasser - Right Index"
+    "name": "Thomas Rasser - Right Index",
+    "action": "na"
   },
   {
     "position": 1,
-    "name": "Thomas Rasser - Left Index"
-  },
-  {
-    "position": 2,
-    "name": "Thomas Wolf - Right Toe"
-  },
-  {
-    "position": 3,
-    "name": "Test"
+    "name": "Thomas Rasser - Left Index",
+    "action": "toggle"
   }
 ]

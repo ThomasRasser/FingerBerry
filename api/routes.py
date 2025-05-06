@@ -15,10 +15,12 @@ from api.models import (
     FingerprintData,
     EnrollRequest,
     UpdateNameRequest,
+    UpdateActionRequest,
     load_fingerprint_data,
     get_fingerprint_by_position,
     add_fingerprint,
     update_fingerprint_name,
+    update_fingerprint_action,
     remove_fingerprint,
     clear_all_fingerprints
 )
@@ -110,8 +112,6 @@ async def clear_database(background_tasks: BackgroundTasks):
     except Exception as e:
         return {"success": False, "message": f"Error starting database clear: {str(e)}"}
 
-# New endpoints for fingerprint management with names
-
 @router.get("/fingerprints", response_model=FingerprintsResponse)
 async def get_all_fingerprints():
     """Get all stored fingerprints with names"""
@@ -163,4 +163,31 @@ async def set_fingerprint_name(position: int, request: UpdateNameRequest):
             "success": False,
             "position": position,
             "message": f"Error updating fingerprint name: {str(e)}"
+        }
+
+from api.models import UpdateActionRequest, update_fingerprint_action  # Make sure this import exists
+
+@router.put("/fingerprints/{position}/action", response_model=EnrollResponse)
+async def set_fingerprint_action(position: int, request: UpdateActionRequest):
+    """Update the action of a fingerprint"""
+    try:
+        if update_fingerprint_action(position, request.action):
+            return {
+                "success": True,
+                "position": position,
+                "message": f"Updated action for fingerprint at position {position}"
+            }
+        else:
+            # If fingerprint not found, add it
+            add_fingerprint(position, action=request.action)
+            return {
+                "success": True,
+                "position": position,
+                "message": f"Added fingerprint at position {position} with action"
+            }
+    except Exception as e:
+        return {
+            "success": False,
+            "position": position,
+            "message": f"Error updating fingerprint action: {str(e)}"
         }

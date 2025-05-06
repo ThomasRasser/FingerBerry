@@ -7,6 +7,7 @@ import json
 from api.websocket import broadcast_message
 from api.models import add_fingerprint, remove_fingerprint, clear_all_fingerprints, get_fingerprint_by_position
 from fingerprint.r503manager import R503Manager, FingerStatus
+from smarthome.smarthome import control_smart_plug
 
 # Sensor configuration
 SENSOR_PORT = os.getenv("SENSOR_PORT", "/dev/ttyS0")
@@ -96,10 +97,14 @@ async def verify_fingerprint_task():
             # Get the fingerprint name if available
             fingerprint = get_fingerprint_by_position(position)
             name = fingerprint.name if fingerprint else None
+            action = fingerprint.action if fingerprint else None
 
             message = f"Fingerprint verified at position {position} with accuracy {accuracy}"
             if name:
                 message += f" (Name: {name})"
+
+            if action and action != "na":
+                control_smart_plug(action)
 
             await broadcast_message(json.dumps({
                 "type": "status",

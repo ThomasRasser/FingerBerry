@@ -18,10 +18,15 @@ class FingerprintData(BaseModel):
     """Model for fingerprint data"""
     position: int
     name: Optional[str] = None
+    action: Optional[str] = None
 
 class UpdateNameRequest(BaseModel):
     """Model for updating fingerprint name"""
     name: str
+
+class UpdateActionRequest(BaseModel):
+    """Model for updating action"""
+    action: str
 
 class EnrollResponse(BaseModel):
     """Model for fingerprint enrollment response"""
@@ -95,19 +100,17 @@ def get_fingerprint_by_position(position: int) -> Optional[FingerprintData]:
             return fp
     return None
 
-def add_fingerprint(position: int, name: Optional[str] = None) -> bool:
+def add_fingerprint(position: int, name: Optional[str] = None, action: Optional[str] = None) -> bool:
     """Add or update a fingerprint"""
     fingerprints = load_fingerprint_data()
 
-    # Check if fingerprint already exists
     for i, fp in enumerate(fingerprints):
         if fp.position == position:
-            # Update existing fingerprint
             fingerprints[i].name = name
+            fingerprints[i].action = action
             return save_fingerprint_data(fingerprints)
 
-    # Add new fingerprint
-    fingerprints.append(FingerprintData(position=position, name=name))
+    fingerprints.append(FingerprintData(position=position, name=name, action=action))
     return save_fingerprint_data(fingerprints)
 
 def update_fingerprint_name(position: int, name: str) -> bool:
@@ -123,6 +126,18 @@ def update_fingerprint_name(position: int, name: str) -> bool:
 
     # Fingerprint not found
     return False
+
+def update_fingerprint_action(position: int, action: str) -> bool:
+    """Update fingerprint action"""
+    fingerprints = load_fingerprint_data()
+
+    for i, fp in enumerate(fingerprints):
+        if fp.position == position:
+            fingerprints[i].action = action
+            return save_fingerprint_data(fingerprints)
+
+    return False
+
 
 def remove_fingerprint(position: int) -> bool:
     """Remove a fingerprint"""
