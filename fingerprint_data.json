@@ -1,12 +1,17 @@
 [
   {
     "position": 0,
-    "name": "Thomas Rasser - Right Index",
-    "action": "toggle"
+    "name": "Thomas Rasser - Right Index Finger",
+    "action": "on"
   },
   {
     "position": 1,
-    "name": "Right Ring",
+    "name": "Florian Kurtz - Left Index Toe",
+    "action": "off"
+  },
+  {
+    "position": 2,
+    "name": "",
     "action": null
   }
 ]

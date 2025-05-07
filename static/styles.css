@@ -147,14 +147,13 @@ h1, h2, h3 {
 }
 
 #log {
-  height: 250px;
   overflow-y: auto;
   background: var(--dark);
   color: var(--light);
   padding: 15px;
   border-radius: 4px;
   font-family: 'Courier New', monospace;
-  margin-top: 10px;
+  margin-top: 5px;
   margin-bottom: 5px;
 }
 
@@ -316,4 +315,43 @@ select:focus {
   .actions {
     flex-direction: column;
   }
+}
+
+/* Mobile Style */
+
+@media (max-width: 600px) {
+  /* stack & wrap operation buttons */
+  .button-row { flex-direction: column; }
+  .button-row .btn { width: 100%; white-space: normal; }
+
+  /* smaller, readable log text */
+  #log { font-size: 0.85rem; }
+
+  /* transform table into vertical “cards” */
+  .table-container table,
+  .table-container thead,
+  .table-container tbody,
+  .table-container th,
+  .table-container td,
+  .table-container tr { display: block; }
+  .table-container thead { display: none; }
+  .table-container tr { margin-bottom: 1em; }
+  .table-container td {
+    position: relative;
+    padding-left: 50%;
+    white-space: normal;
+    word-break: break-word;
+  }
+  .table-container td:before {
+    position: absolute;
+    top: 0; left: 0;
+    width: 45%;
+    padding-right: 10px;
+    white-space: normal;
+    font-weight: 600;
+  }
+  .table-container td:nth-of-type(1):before { content: "ID"; }
+  .table-container td:nth-of-type(2):before { content: "Name"; }
+  .table-container td:nth-of-type(3):before { content: "Actions"; }
+  .table-container td:nth-of-type(4):before { content: "Delete"; }
 }
