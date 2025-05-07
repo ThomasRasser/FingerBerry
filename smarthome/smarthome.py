@@ -11,19 +11,18 @@ import click
 import time
 import os
 
+from dotenv import load_dotenv
+
 # -------------------------------------------------------- #
 
-# Determine the directory of the script
+# Load environment variables from .env file
 script_dir = os.path.dirname(os.path.realpath(__file__))
-config_path = os.path.join(script_dir, "config.json")
+env_path = os.path.join(script_dir, ".env")
+load_dotenv(env_path)
 
-# Load configuration
-with open(config_path) as config_file:
-    config = json.load(config_file)
-
-HA_URL = config["HA_URL"]
-HA_TOKEN = config["HA_TOKEN"]
-ENTITY_ID = config["ENTITY_ID"]
+HA_URL = os.getenv("HA_URL")
+HA_TOKEN = os.getenv("HA_TOKEN")
+ENTITY_ID = os.getenv("ENTITY_ID")
 
 # -------------------------------------------------------- #
 
