@@ -11,7 +11,12 @@
   },
   {
     "position": 2,
-    "name": "TW",
-    "action": "toggle"
+    "name": "Thomas Rasser - Left Index Finger",
+    "action": "on"
+  },
+  {
+    "position": 3,
+    "name": "Thomas Rasser - Left Middle Finger",
+    "action": "off"
   }
 ]

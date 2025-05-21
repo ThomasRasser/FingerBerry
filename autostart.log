@@ -62,3 +62,77 @@ INFO:     Started server process [1487]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+
+2025-05-21T11:00:15+02:00
+uv run fingerprint/r503led.py --port /dev/ttyS0 --baudrate 57600 --mode on --color red --duration 3
+LED on red for 3.0 s
+uv run app.py
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [1487]
+make: *** [Makefile:7: app] Error 143
+INFO:     Started server process [3154]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+
+2025-05-21T11:00:41+02:00
+uv run fingerprint/r503led.py --port /dev/ttyS0 --baudrate 57600 --mode on --color red --duration 3
+LED on red for 3.0 s
+INFO:     Shutting down
+uv run app.py
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [3154]
+make: *** [Makefile:7: app] Error 143
+uv run fingerprint/r503led.py --port /dev/ttyS0 --baudrate 57600 --mode on --color green --duration 3
+INFO:     Started server process [3175]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+LED on green for 3.0 s
+Starting fingerprint API on port 8000
+Sensor configured: Port=/dev/ttyS0, Baudrate=57600
+INFO:     192.168.1.179:51600 - "GET /static/index.html HTTP/1.1" 200 OK
+INFO:     192.168.1.179:51600 - "GET /static/styles.css HTTP/1.1" 304 Not Modified
+INFO:     192.168.1.179:51604 - "GET /static/script.js HTTP/1.1" 200 OK
+INFO:     192.168.1.179:51602 - "GET /static/FingerBerryLogo.webp HTTP/1.1" 304 Not Modified
+INFO:     192.168.1.179:51602 - "GET /api/fingerprints HTTP/1.1" 200 OK
+INFO:     192.168.1.179:51600 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.1.179:51604 - "GET /static/FingerBerry.ico HTTP/1.1" 304 Not Modified
+INFO:     ('192.168.1.179', 51606) - "WebSocket /ws" [accepted]
+INFO:     connection open
+INFO:     192.168.1.179:51612 - "POST /api/verify HTTP/1.1" 200 OK
+Waiting for finger...
+Fingerprint not found!
+Remove finger...
+INFO:     192.168.1.179:51614 - "POST /api/enroll HTTP/1.1" 200 OK
+Currently used templates: 2
+First scan - place finger on sensor
+Waiting for finger...
+Remove finger...
+Second scan - place same finger again
+Waiting for finger...
+Fingerprint enrolled successfully at position 2!
+Remove finger...
+INFO:     192.168.1.179:51616 - "GET /api/fingerprints HTTP/1.1" 200 OK
+INFO:     192.168.1.179:51628 - "POST /api/enroll HTTP/1.1" 200 OK
+Currently used templates: 3
+First scan - place finger on sensor
+Waiting for finger...
+Remove finger...
+Second scan - place same finger again
+Waiting for finger...
+Fingerprint enrolled successfully at position 3!
+Remove finger...
+INFO:     192.168.1.179:51630 - "GET /api/fingerprints HTTP/1.1" 200 OK
+INFO:     192.168.1.179:51630 - "PUT /api/fingerprints/3/action HTTP/1.1" 200 OK
+INFO:     192.168.1.179:51632 - "PUT /api/fingerprints/2/action HTTP/1.1" 200 OK
+INFO:     192.168.1.179:51632 - "PUT /api/fingerprints/3/action HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     connection closed
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [3175]
+make: *** [Makefile:7: app] Error 143

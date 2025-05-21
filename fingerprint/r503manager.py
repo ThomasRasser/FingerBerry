@@ -4,9 +4,11 @@ R503 Fingerprint manager that uses pyfingerprint library with LED indicator supp
 """
 
 import time
+import threading
 from enum import Enum
 
 from pyfingerprint.pyfingerprint import PyFingerprint
+from api.websocket import broadcast_message
 
 from .r503led import R503LED, LEDColor, LEDMode
 
@@ -45,6 +47,8 @@ class R503Manager:
         self.led = R503LED(port, baudrate)
 
         self.finger = None
+
+        self._stop_event = threading.Event()
 
     def __enter__(self):
         """Context manager entry"""
@@ -277,6 +281,44 @@ class R503Manager:
             print(f"Verification error: {e}")
             self.set_led_status(FingerStatus.ERROR)
             return False, None, None
+
+    def continuous_verify(self):
+        """Loop: read image, search, LED, and broadcast via WS until stopped."""
+        self._stop_event.clear()
+        while not self._stop_event.is_set():
+            try:
+                if self.finger.readImage():
+                    self.led.led_on(LEDColor.BLUE)
+                    self.finger.convertImage(0x01)
+                    pos, accuracy = self.finger.searchTemplate()
+                    status = FingerStatus.SUCCESS if pos >= 0 else FingerStatus.NOT_FOUND
+                    self.set_led_status(status)
+                    time.sleep(0.5)
+                    self.led.led_off()
+
+                    # Broadcast over WebSocket
+                    msg = {
+                        "type": "continuous_verify",
+                        "status": "success" if pos >= 0 else "failed",
+                        "position": pos if pos >= 0 else None,
+                        "accuracy": accuracy if pos >= 0 else None
+                    }
+                    asyncio.run(broadcast_message(json.dumps(msg)))
+
+                    self.wait_finger_removed()
+                else:
+                    time.sleep(0.1)
+            except Exception as e:
+                asyncio.run(broadcast_message(json.dumps({
+                    "type": "error",
+                    "message": f"Continuous verify error: {e}"
+                })))
+                break
+
+    def stop_verify(self):
+        """Signal the continuous-verify loop to halt and turn LEDs off."""
+        self._stop_event.set()
+        self.led.led_off()
 
     def delete_finger(self, position=None):
         """

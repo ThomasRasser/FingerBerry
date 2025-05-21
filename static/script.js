@@ -13,6 +13,9 @@ let fingerprints = [];
 // DOM elements - we will populate this when the page loads
 let elements = {};
 
+// Flag for continuous scanning
+let continuousMode = false;
+
 /**
  * Initialize the application
  */
@@ -30,7 +33,8 @@ function initialize() {
         clearLogBtn: document.getElementById('clearLogBtn'),
         fingerprintTable: document.getElementById('fingerprintTable'),
         fingerprintTableBody: document.getElementById('fingerprintTableBody'),
-        refreshFingerprintsBtn: document.getElementById('refreshFingerprintsBtn')
+        refreshFingerprintsBtn: document.getElementById('refreshFingerprintsBtn'),
+        toggleContinuousBtn: document.getElementById('toggleContinuousBtn'),
     };
 
     // Connect to WebSocket
@@ -56,6 +60,7 @@ function setupEventListeners() {
     // Operation buttons
     elements.enrollBtn.addEventListener('click', enrollFinger);
     elements.verifyBtn.addEventListener('click', verifyFinger);
+    elements.toggleContinuousBtn.addEventListener('click', toggleContinuousVerify);
     elements.countBtn.addEventListener('click', getCount);
     elements.clearBtn.addEventListener('click', confirmClear);
 
@@ -64,6 +69,7 @@ function setupEventListeners() {
 
     // Clear log button
     elements.clearLogBtn.addEventListener('click', clearLog);
+
 }
 
 /**
@@ -128,6 +134,14 @@ function handleWebSocketMessage(data) {
             log('WebSocket: ' + data.message, 'success');
             break;
 
+        case 'continuous_verify': // NEW
+            if (data.status === 'success') {
+                log(`✔️ [Continuous] Match at ${data.position} (Acc: ${data.accuracy})`, 'success');
+            } else {
+                log(`❌ [Continuous] No match`, 'warning');
+            }
+            break;
+
         default:
             // For unknown types, just log the message
             log(JSON.stringify(data));
@@ -189,6 +203,8 @@ function renderFingerprintTable() {
                         <option value="on" ${fingerprint.action === "on" ? "selected" : ""}>Smart Plug ON</option>
                         <option value="off" ${fingerprint.action === "off" ? "selected" : ""}>Smart Plug OFF</option>
                         <option value="toggle" ${fingerprint.action === "toggle" ? "selected" : ""}>Toggle Plug</option>
+                        <option value="on" ${fingerprint.action === "on" ? "selected" : ""}>Phone On</option>
+                        <option value="off" ${fingerprint.action === "off" ? "selected" : ""}>Phone Off</option>
                     </select>
                 </td>
                 <td class="delete">
@@ -393,6 +409,23 @@ function verifyFinger() {
         log(`Error during verification: ${error}`, 'error');
         elements.fingerprintVisual.classList.remove('scanning');
     });
+}
+
+/**
+ * Verify fingerprint continuously
+ */
+function toggleContinuousVerify() {
+    const url = `${apiBase}/verify/continuous/${continuousMode ? 'stop' : 'start'}`;
+    fetch(url, { method: 'POST' })
+        .then(res => res.json())
+        .then(data => {
+            continuousMode = !continuousMode;
+            elements.toggleContinuousBtn.textContent = continuousMode
+                ? 'Stop Continuous Verify'
+                : 'Start Continuous Verify';
+            log(data.message, 'info');
+        })
+        .catch(err => log(`Error toggling continuous verify: ${err}`, 'error'));
 }
 
 /**

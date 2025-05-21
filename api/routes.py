@@ -30,7 +30,9 @@ from api.background import (
     enroll_fingerprint_task,
     verify_fingerprint_task,
     delete_fingerprint_task,
-    clear_database_task
+    clear_database_task,
+    start_continuous,
+    stop_continuous
 )
 
 # Create API router
@@ -69,6 +71,19 @@ async def verify_fingerprint(background_tasks: BackgroundTasks):
         return {"success": True, "position": None, "accuracy": None, "name": None, "message": "Verification process started"}
     except Exception as e:
         return {"success": False, "position": None, "accuracy": None, "name": None, "message": f"Error starting verification: {str(e)}"}
+
+@router.post("/verify/continuous/start")
+async def start_continuous_verify(background_tasks: BackgroundTasks):
+    """Begin blinking and verifying in a loop until stopped"""
+    background_tasks.add_task(start_continuous)
+    return {"started": True, "message": "Continuous verification started"}
+
+@router.post("/verify/continuous/stop")
+async def stop_continuous_verify():
+    """Halt the running continuous-verify loop"""
+    stop_continuous()
+    return {"stopped": True, "message": "Continuous verification stopped"}
+
 
 @router.post("/delete/{position}", response_model=DeleteResponse)
 async def delete_fingerprint(position: int, background_tasks: BackgroundTasks):
