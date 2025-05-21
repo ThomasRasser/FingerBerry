@@ -114,6 +114,16 @@ class R503LED:
         # p1 = mode, p2 = 0, p3 = color, p4 = 0
         return self.send_command(instruction, mode, 0, color, 0)
 
+    def led_on_for(self, seconds, color=LEDColor.RED):
+        """Turn LED on for a given duration, then turn it off."""
+        # turn it on
+        self.led_on(color)
+        # wait
+        time.sleep(seconds)
+        # turn it off
+        self.led_off(color)
+
+
     # Convenience methods
     def led_on(self, color=LEDColor.RED):
         """Turn LED on with specified color"""
@@ -143,6 +153,10 @@ if __name__ == "__main__":
         default="red",
         help="LED color (default: red)",
     )
+    parser.add_argument(
+        "--duration", type=float, default=None,
+        help="If set, turn the LED on for this many seconds, then off"
+    )
 
     # Parse arguments
     args = parser.parse_args()
@@ -163,9 +177,12 @@ if __name__ == "__main__":
     # Control the LED
     try:
         with R503LED(args.port, args.baudrate) as led:
-            print(f"Controlling LED: mode={args.mode}, color={args.color}")
-            led.control_led(mode_map[args.mode], color_map[args.color])
-            print("Command sent successfully")
+            if args.duration is not None:
+                led.led_on_for(args.duration, color_map[args.color])
+                print(f"LED on {args.color} for {args.duration} s")
+            else:
+                led.control_led(mode_map[args.mode], color_map[args.color])
+                print("Command sent successfully")
     except Exception as e:
         print(f"Error: {e}")
         exit(1)

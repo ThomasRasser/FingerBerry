@@ -21,6 +21,11 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Add Favicon
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    return FileResponse("static/FingerBerry.ico")
+
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,

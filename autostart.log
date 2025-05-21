@@ -1,0 +1,64 @@
+2025-05-21T10:14:32+02:00
+2025-05-21T10:16:20+02:00
+2025-05-21T10:16:39+02:00
+
+2025-05-21T10:18:48+02:00
+uv run fingerprint/r503led.py --port /dev/ttyS0 --baudrate 57600 --mode on --color red --duration 3
+LED on red for 3.0 s
+uv run app.py
+uv run fingerprint/r503led.py --port /dev/ttyS0 --baudrate 57600 --mode on --color green --duration 3
+INFO:     Started server process [2550]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+LED on green for 3.0 s
+uv run fingerprint/r503led.py --port /dev/ttyS0 --baudrate 57600 --mode on --color green --duration 3
+LED on green for 3.0 s
+
+2025-05-21T10:19:14+02:00
+uv run fingerprint/r503led.py --port /dev/ttyS0 --baudrate 57600 --mode on --color red --duration 3
+LED on red for 3.0 s
+uv run app.py
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [2550]
+make: *** [Makefile:7: app] Error 143
+uv run fingerprint/r503led.py --port /dev/ttyS0 --baudrate 57600 --mode on --color green --duration 3
+INFO:     Started server process [2580]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+LED on green for 3.0 s
+uv run fingerprint/r503led.py --port /dev/ttyS0 --baudrate 57600 --mode on --color green --duration 3
+LED on green for 3.0 s
+
+2025-05-21T10:20:24+02:00
+uv run fingerprint/r503led.py --port /dev/ttyS0 --baudrate 57600 --mode on --color red --duration 3
+LED on red for 3.0 s
+uv run app.py
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [2580]
+make: *** [Makefile:7: app] Error 143
+uv run fingerprint/r503led.py --port /dev/ttyS0 --baudrate 57600 --mode on --color green --duration 3
+INFO:     Started server process [2613]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+LED on green for 3.0 s
+uv run fingerprint/r503led.py --port /dev/ttyS0 --baudrate 57600 --mode on --color green --duration 3
+LED on green for 3.0 s
+make: *** [Makefile:7: app] Hangup
+
+2025-05-21T10:25:00+02:00
+uv run fingerprint/r503led.py --port /dev/ttyS0 --baudrate 57600 --mode on --color red --duration 3
+LED on red for 3.0 s
+uv run app.py
+uv run fingerprint/r503led.py --port /dev/ttyS0 --baudrate 57600 --mode on --color green --duration 3
+LED on green for 3.0 s
+INFO:     Started server process [1487]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
